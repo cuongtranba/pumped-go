@@ -228,6 +228,216 @@ See [examples/](./examples/) for complete working examples:
 - `http-api/` - REST API with dependency injection
 - `cli-tasks/` - CLI application with services
 
+## Development
+
+This project uses a comprehensive CI/CD pipeline with Devbox for reproducible development environments.
+
+### Quick Start
+
+1. **Install Devbox:**
+   ```bash
+   curl -fsSL https://get.jetify.com/devbox | bash
+   ```
+
+2. **Clone and setup:**
+   ```bash
+   git clone https://github.com/pumped-fn/pumped-go.git
+   cd pumped-go
+   devbox shell
+   devbox run setup
+   ```
+
+3. **Run tests:**
+   ```bash
+   devbox run test
+   ```
+
+### Available Commands
+
+```bash
+# Setup & Dependencies
+devbox run setup           # Initial setup
+devbox run deps            # Download dependencies
+devbox run tidy            # Tidy go.mod
+
+# Testing
+devbox run test            # Run tests
+devbox run test-coverage   # Run with coverage
+devbox run coverage        # View coverage report
+devbox run integration-test # Integration tests
+devbox run benchmark       # Run benchmarks
+
+# Code Quality
+devbox run lint            # Run linters
+devbox run lint-fix        # Auto-fix issues
+devbox run fmt             # Format code
+devbox run vet             # Run go vet
+
+# Building
+devbox run build           # Build library
+devbox run build-examples  # Build examples
+
+# Security
+devbox run security        # Run gosec
+devbox run vulnerability-check # Check vulnerabilities
+
+# CI/CD
+devbox run ci              # Full CI pipeline
+devbox run pre-commit      # Pre-commit checks
+devbox run release-snapshot # Test release locally
+devbox run release-test    # Validate release config
+
+# Maintenance
+devbox run clean           # Clean artifacts
+devbox run all             # Run everything
+```
+
+### Development Workflow
+
+1. Make your changes
+2. Run tests: `devbox run test`
+3. Run linters: `devbox run lint`
+4. Fix any issues: `devbox run lint-fix`
+5. Run full CI: `devbox run ci`
+6. Commit with conventional commits
+
+### Pre-commit Checks
+
+Before every commit:
+```bash
+devbox run pre-commit
+```
+
+This runs:
+1. Code formatting
+2. Linters
+3. Tests
+
+## CI/CD Pipeline
+
+### Overview
+
+Our CI/CD pipeline uses:
+- **GitHub Actions** for automation
+- **Devbox** for reproducible development environments
+- **GoReleaser** for release automation
+- **Codecov** for coverage reporting
+- **cosign** for artifact signing
+
+### Workflows
+
+#### CI Workflow (`.github/workflows/ci.yml`)
+
+**Trigger:** Push to `main`/`develop` branches or pull requests
+
+**Jobs:**
+- **Lint**: Runs golangci-lint with comprehensive linter configuration
+- **Test**: Matrix strategy (Ubuntu and macOS) with race detection and coverage
+- **Build**: Builds main library and all example applications
+- **Integration**: Runs integration tests with `-tags=integration`
+- **Security**: Runs gosec security scanner
+
+#### Release Workflow (`.github/workflows/release.yml`)
+
+**Trigger:** Push of version tag (`v*.*.*`)
+
+**Jobs:**
+- **GoReleaser**: Runs full test suite, builds multi-platform binaries, generates changelog, creates checksums, signs artifacts with cosign, creates GitHub release
+- **Publish Go Module**: Triggers Go proxy to update module cache
+
+### Release Process
+
+#### Semantic Versioning
+
+We follow [Semantic Versioning](https://semver.org/):
+- **MAJOR**: Breaking changes
+- **MINOR**: New features (backward compatible)
+- **PATCH**: Bug fixes
+
+#### Conventional Commits
+
+We use conventional commits for automatic changelog generation:
+
+```
+feat: Add new feature (MINOR bump)
+fix: Fix bug (PATCH bump)
+perf: Performance improvement
+docs: Documentation changes
+test: Test changes
+ci: CI/CD changes
+chore: Maintenance
+refactor: Code refactoring
+
+BREAKING CHANGE: (MAJOR bump)
+```
+
+#### Creating a Release
+
+1. **Ensure CI passes:**
+   ```bash
+   devbox run ci
+   ```
+
+2. **Test release locally:**
+   ```bash
+   devbox run release-snapshot
+   ```
+
+3. **Update version references if needed**
+
+4. **Commit and push:**
+   ```bash
+   git add .
+   git commit -m "chore: prepare for v0.x.0 release"
+   git push
+   ```
+
+5. **Create and push tag:**
+   ```bash
+   git tag -a v0.x.0 -m "Release v0.x.0"
+   git push origin v0.x.0
+   ```
+
+6. **GitHub Actions will automatically:** Run CI checks, build artifacts, sign with cosign, create GitHub release, update Go proxy
+
+## Code Quality
+
+### Linting Configuration
+
+Located in `.golangci.yml` with comprehensive linters including:
+- errcheck, gosimple, govet, ineffassign, staticcheck, unused
+- gofmt, goimports, misspell, revive, gosec, gocritic
+- And more...
+
+**Timeout:** 5 minutes
+**Severity:** Error by default
+
+### Coverage Reporting
+
+- Coverage generated during CI test job
+- Uploaded to Codecov (Ubuntu builds only)
+- Target: Keep coverage above 80% for new code
+
+## Security
+
+- Automatic security scanning with gosec in CI
+- Dependency vulnerability checks
+- Artifact signing with cosign for releases
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes following the development workflow
+4. Ensure all tests pass and code quality checks succeed
+5. Submit a pull request with conventional commits
+
+## Support
+
+- **Issues:** [GitHub Issues](https://github.com/pumped-fn/pumped-go/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/pumped-fn/pumped-go/discussions)
+- **Documentation:** [GoDoc](https://pkg.go.dev/github.com/pumped-fn/pumped-go)
+
 ## License
 
 MIT
